@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Calculadora de Integral</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de Integral</h1>
+    
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="funcion">Ecuación:</label>
+          <input type="text" class="form-control" id="funcion" placeholder="Ingrese la ecuación">
+        </div>
+        
+        <div class="form-group">
+          <label for="limite-inferior">Límite inferior:</label>
+          <input type="number" class="form-control" id="limite-inferior" placeholder="Ingrese el límite inferior">
+        </div>
+        
+        <div class="form-group">
+          <label for="limite-superior">Límite superior:</label>
+          <input type="number" class="form-control" id="limite-superior" placeholder="Ingrese el límite superior">
+        </div>
+        
+        <button type="button" class="btn btn-primary" onclick="calcularIntegral()">Calcular</button>
+      </div>
+      
+      <div class="col-md-6">
+        <div id="grafico"></div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function calcularIntegral() {
+      var funcion = document.getElementById("funcion").value;
+      var limiteInferior = parseFloat(document.getElementById("limite-inferior").value);
+      var limiteSuperior = parseFloat(document.getElementById("limite-superior").value);
+      
+      // Cálculo de la integral (puedes usar tu método preferido aquí)
+      // var resultado = ...;
+      
+      // Actualización del gráfico
+      var x = [];
+      var y = [];
+      
+      var paso = 0.1;
+      for (var i = limiteInferior; i <= limiteSuperior; i += paso) {
+        x.push(i);
+        y.push(eval(funcion));
+      }
+      
+      var data = [
+        {
+          x: x,
+          y: y,
+          type: 'scatter'
+        }
+      ];
+      
+      var layout = {
+        title: 'Gráfico de la función',
+        xaxis: {
+          title: 'x'
+        },
+        yaxis: {
+          title: 'y'
+        }
+      };
+      
+      Plotly.newPlot('grafico', data, layout);
+    }
+  </script>
+</body>
+</html>

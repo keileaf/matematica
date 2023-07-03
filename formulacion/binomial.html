@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Distribución Binomial</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <style>
+/*SIDEBAR*/
+.sidebar {  
+    margin: 0;
+    padding: 0;
+    width: 200px;
+    background-color: #ededed;
+    position: fixed;
+    height: 100%;
+    overflow: auto;
+}
+
+.sidebar a{
+    display: block;
+    color: black;
+    padding: 16px;
+    text-decoration: none;
+}
+
+.sidebar a.active {
+    background-color: #b8dae0;
+    color: rgb(0, 0, 0);
+}
+
+.sidebar a:hover:not(.active) {
+    background-color: #555;
+    color: white;
+}
+
+div.content {
+    margin-left: 200px;
+    padding: 1px 16px;
+    height: 1000px;
+}
+
+@media screen and (max-width: 700px) 
+{
+    .sidebar 
+    {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    .sidebar a {float: left;}
+    div.content {margin-left: 0;}
+}
+
+@media screen and (max-width: 400px) 
+{
+    .sidebar a 
+    {
+        text-align: center;
+        float: none;
+    }
+}
+  </style>
+</head>
+<body>
+  <div class="d-flex">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <a class="active" href="./index.html">Inicio</a>
+      <a  href="./normal.html">Distribucion normal</a>
+      <a  href="./binomial.html">Distribucion binomial</a>
+      <a  href="./poisson.html">Distribucion poisson</a>
+      
+    </div>
+    <div class="content">
+
+  <div class="modal" id="myModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Distribución binomial</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <!-- Modal body -->
+        <div class="modal-body">
+          <p>La distribución binomial es un modelo matemático que se utiliza para calcular la probabilidad de obtener un número específico de éxitos en un número fijo de intentos independientes, donde cada intento tiene solo dos resultados posibles: éxito o fracaso. Es decir, es una distribución que describe la probabilidad de obtener un determinado número de éxitos en una serie de pruebas repetidas.</p>
+          <p>En resumen, la distribución binomial se usa para calcular las probabilidades en situaciones donde hay dos resultados posibles y se repiten un número fijo de veces, como lanzar una moneda varias veces o realizar un cierto número de ensayos con una tasa de éxito conocida.</p>
+        </div>
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container mt-5">
+    <h1>Calculadora de Distribución Binomial</h1>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Captura de Datos</h5>
+            <form>
+              <div class="form-group">
+                <label for="eventos">Número de Eventos:</label>
+                <input type="number" class="form-control" id="eventos" required>
+              </div>
+              <div class="form-group">
+                <label for="exito">Probabilidad de Éxito:</label>
+                <input type="number" step="0.01" class="form-control" id="exito" required>
+              </div>
+              <div class="form-group">
+                <label for="fracaso">Probabilidad de Fracaso:</label>
+                <input type="number" step="0.01" class="form-control" id="fracaso" required>
+              </div>
+              <div class="form-group">
+                <label for="valor-deseado">Valor Deseado:</label>
+                <input type="number" class="form-control" id="valor-deseado" required>
+              </div>
+              <button type="button" class="btn btn-primary" onclick="calcularBinomial()">Calcular</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#myModal">
+                Información
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Gráfica de Distribución Binomial</h5>
+            <div class="chart-container" style="position: relative; height: 365px; width: 100%;">
+              <canvas id="chart"></canvas>
+            </div>
+            <div id="resultado" class="mt-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-5">
+      <div class="col-md-12">
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>k</th>
+                <th>Probabilidad</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-valores"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+  <script>
+    var chart;
+    var resultados = [];
+    var labels = [];
+
+    function calcularBinomial() {
+      var eventos = parseInt(document.getElementById("eventos").value);
+      var exito = parseFloat(document.getElementById("exito").value);
+      var fracaso = parseFloat(document.getElementById("fracaso").value);
+      var valorDeseado = parseInt(document.getElementById("valor-deseado").value);
+
+      var probExito = exito / (exito + fracaso);
+      var probFracaso = fracaso / (exito + fracaso);
+
+      resultados = [];
+      labels = [];
+
+      var maxProbabilidad = 0;
+      var maxProbabilidadIndex = 0;
+
+      for (var k = 0; k <= eventos; k++) {
+        var resultado = combinatoria(eventos, k) * (Math.pow(probExito, k)) * (Math.pow(probFracaso, eventos - k));
+        resultados.push(resultado * 100);
+        labels.push(k);
+
+        if (resultado > maxProbabilidad) {
+          maxProbabilidad = resultado;
+          maxProbabilidadIndex = k;
+        }
+      }
+
+      mostrarGrafica(resultados, labels, maxProbabilidad, maxProbabilidadIndex);
+      var probabilidad = resultados[valorDeseado].toFixed(2);
+      var comb = combinatoria(eventos, valorDeseado);
+      document.getElementById("resultado").innerHTML = "La probabilidad de obtener " + valorDeseado + " éxitos es " + probabilidad + "%. Combinatoria: " + comb;
+
+      mostrarTablaValores(resultados, labels);
+    }
+
+    function combinatoria(n, k) {
+      var num = 1;
+      var den = 1;
+
+      for (var i = 1; i <= k; i++) {
+        num *= (n - i + 1);
+        den *= i;
+      }
+
+      return num / den;
+    }
+
+    function mostrarGrafica(resultados, labels, maxProbabilidad, maxProbabilidadIndex) {
+      var ctx = document.getElementById("chart").getContext("2d");
+
+      if (chart) {
+        chart.destroy();
+      }
+
+      chart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Probabilidad",
+            data: resultados,
+            backgroundColor: function(context) {
+              var index = context.dataIndex;
+              var value = context.dataset.data[index];
+              if (index === maxProbabilidadIndex) {
+                return "green";
+              } else if (value >= 1) {
+                return "cyan";
+              } else {
+                return "red";
+              }
+            },
+            borderColor: "black",
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: "Número de Éxitos (k)"
+              }
+            },
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: "Probabilidad (%)"
+              },
+              suggestedMin: 0,
+              suggestedMax: Math.max(...resultados) * 2
+            }
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: "Distribución Binomial"
+            }
+          }
+        }
+      });
+    }
+
+    function mostrarTablaValores(resultados, labels) {
+      var tablaValores = document.getElementById("tabla-valores");
+      tablaValores.innerHTML = "";
+
+      for (var i = 0; i < resultados.length; i++) {
+        var fila = document.createElement("tr");
+
+        var celdaK = document.createElement("td");
+        celdaK.textContent = labels[i];
+        fila.appendChild(celdaK);
+
+        var celdaProbabilidad = document.createElement("td");
+        celdaProbabilidad.textContent = resultados[i].toFixed(2) + "%";
+        if (resultados[i] === Math.max(...resultados)) {
+          celdaProbabilidad.style.color = "green";
+        } else if (resultados[i] >= 1) {
+          celdaProbabilidad.style.color = "cyan";
+        } else {
+          celdaProbabilidad.style.color = "red";
+        }
+        fila.appendChild(celdaProbabilidad);
+
+        tablaValores.appendChild(fila);
+      }
+    }
+  </script>
+</body>
+</html>

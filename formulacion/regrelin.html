@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Calculadora de Regresión Lineal</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Calculadora de Regresión Lineal</h1>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Captura de Datos</h5>
+            <form>
+              <div class="form-group">
+                <label for="x-values">Valores de X (separados por comas):</label>
+                <input type="text" class="form-control" id="x-values" required>
+              </div>
+              <div class="form-group">
+                <label for="y-values">Valores de Y (separados por comas):</label>
+                <input type="text" class="form-control" id="y-values" required>
+              </div>
+              <button type="button" class="btn btn-primary" onclick="calcularRegresionLineal()">Calcular</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Gráfica de Regresión Lineal</h5>
+            <div class="chart-container" style="position: relative; height: 365px; width: 100%;">
+              <canvas id="regresion-chart"></canvas>
+            </div>
+            <div id="regresion-resultado" class="mt-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var regresionChart;
+
+    function calcularRegresionLineal() {
+      var xValuesStr = document.getElementById("x-values").value;
+      var yValuesStr = document.getElementById("y-values").value;
+
+      var xValues = xValuesStr.split(",").map(Number);
+      var yValues = yValuesStr.split(",").map(Number);
+
+      var regressionResult = linearRegression(xValues, yValues);
+
+      mostrarGraficaRegresion(xValues, yValues, regressionResult);
+      document.getElementById("regresion-resultado").innerHTML = "La ecuación de la regresión lineal es: y = " + regressionResult.m.toFixed(2) + "x + " + regressionResult.b.toFixed(2);
+    }
+
+    function linearRegression(xValues, yValues) {
+      var n = xValues.length;
+
+      var xSum = xValues.reduce((a, b) => a + b, 0);
+      var ySum = yValues.reduce((a, b) => a + b, 0);
+
+      var xySum = 0;
+      var xSquaredSum = 0;
+
+      for (var i = 0; i < n; i++) {
+        xySum += xValues[i] * yValues[i];
+        xSquaredSum += Math.pow(xValues[i], 2);
+      }
+
+      var xMean = xSum / n;
+      var yMean = ySum / n;
+
+      var numerator = xySum - n *
+
+ xMean * yMean;
+      var denominator = xSquaredSum - n * Math.pow(xMean, 2);
+
+      var m = numerator / denominator;
+      var b = yMean - m * xMean;
+
+      return { m: m, b: b };
+    }
+
+    function mostrarGraficaRegresion(xValues, yValues, regressionResult) {
+      var ctx = document.getElementById("regresion-chart").getContext("2d");
+
+      if (regresionChart) {
+        regresionChart.destroy();
+      }
+
+      regresionChart = new Chart(ctx, {
+        type: "scatter",
+        data: {
+          datasets: [{
+            label: "Puntos de Datos",
+            data: xValues.map((x, i) => ({ x: x, y: yValues[i] })),
+            backgroundColor: "blue",
+            borderColor: "blue",
+            showLine: false,
+            pointRadius: 5
+          }, {
+            label: "Regresión Lineal",
+            data: xValues.map((x, i) => ({ x: x, y: regressionResult.m * x + regressionResult.b })),
+            backgroundColor: "red",
+            borderColor: "red",
+            showLine: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: "X"
+              }
+            },
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: "Y"
+              }
+            }
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: "Regresión Lineal"
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Distribución Normal</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <style>
+    canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .chart-container {
+      width: 100%;
+      height: 400px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+/*SIDEBAR*/
+.sidebar {  
+    margin: 0;
+    padding: 0;
+    width: 200px;
+    background-color: #ededed;
+    position: fixed;
+    height: 100%;
+    overflow: auto;
+}
+
+.sidebar a{
+    display: block;
+    color: black;
+    padding: 16px;
+    text-decoration: none;
+}
+
+.sidebar a.active {
+    background-color: #b8dae0;
+    color: rgb(0, 0, 0);
+}
+
+.sidebar a:hover:not(.active) {
+    background-color: #555;
+    color: white;
+}
+
+div.content {
+    margin-left: 200px;
+    padding: 1px 16px;
+    height: 1000px;
+}
+
+@media screen and (max-width: 700px) 
+{
+    .sidebar 
+    {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    .sidebar a {float: left;}
+    div.content {margin-left: 0;}
+}
+
+@media screen and (max-width: 400px) 
+{
+    .sidebar a 
+    {
+        text-align: center;
+        float: none;
+    }
+}  
+</style>
+</head>
+<body>  
+  <div class="d-flex">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <a class="active" href="./index.html">Inicio</a>
+      <a  href="./normal.html">Distribucion normal</a>
+      <a  href="./binomial.html">Distribucion binomial</a>
+      <a  href="./poisson.html">Distribucion poisson</a>
+      
+    </div>
+  <div class="content">
+
+  
+  <!-- Modal -->
+  <div class="modal fade" id="normal-distribution-info-modal" tabindex="-1" role="dialog" aria-labelledby="normal-distribution-info-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Distribución binomial</h4>
+        </div>
+        <div class="modal-body">
+          <p>La distribución normal, también conocida como distribución de Gauss, es una distribución de probabilidad continua que se utiliza comúnmente en estadística. Se caracteriza por su forma de campana simétrica alrededor de su media (promedio) y desviación estándar.</p>
+          <p>La distribución normal tiene muchas aplicaciones en la modelización de fenómenos naturales y sociales debido a su propiedad de aparecer con frecuencia en la naturaleza.</p>
+          <p>En esta calculadora, puedes ingresar la media y la desviación estándar de una distribución normal, así como los límites inferior y superior opcionales. Luego, se calculará el área bajo la curva de la distribución normal en el rango especificado y se mostrará en la gráfica.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mt-5">
+    <h1>Calculadora de Distribución Normal</h1>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Captura de Datos</h5>
+            <form>
+              <div class="form-group">
+                <label for="mean">Media:</label>
+                <input type="number" class="form-control" id="mean" required>
+              </div>
+              <div class="form-group">
+                <label for="std-dev">Desviación Estándar:</label>
+                <input type="number" class="form-control" id="std-dev" required>
+              </div>
+              <div class="form-group">
+                <label for="lower-limit">Límite Inferior:</label>
+                <input type="number" class="form-control" id="lower-limit">
+              </div>
+              <div class="form-group">
+                <label for="upper-limit">Límite Superior:</label>
+                <input type="number" class="form-control" id="upper-limit">
+              </div>
+          
+                <button type="button" class="btn btn-primary" onclick="calculate()">Calcular</button>
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#normal-distribution-info-modal"> Información</button>
+
+
+            </form>
+            <div class="mt-3" id="result"></div>
+            <div class="mt-3" id="x-values"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Gráfica de Probabilidad</h5>
+            <div class="chart-container">
+              <canvas id="chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jstat@1.7.1/dist/jstat.min.js"></script>
+  <script>
+    var chart;
+
+    function calculate() {
+      var mean = parseFloat(document.getElementById("mean").value);
+      var stdDev = parseFloat(document.getElementById("std-dev").value);
+      var lowerLimit = parseFloat(document.getElementById("lower-limit").value);
+      var upperLimit = parseFloat(document.getElementById("upper-limit").value);
+
+      var result = calculate_area_under_curve(mean, stdDev, lowerLimit, upperLimit);
+
+      var probabilityPercent = (result * 100).toFixed(2);
+
+      document.getElementById("result").textContent = "El área bajo la curva es: " + probabilityPercent + "%";
+
+      var xValues = calculate_x_values(mean, stdDev);
+      document.getElementById("x-values").textContent = "Las probabilidades comienzan a existir entre X = " + xValues[0].toFixed(2) + "  y X = " + xValues[1].toFixed(2);
+
+      // Actualizar la gráfica
+      updateChart(mean, stdDev, xValues[0], xValues[1], lowerLimit, upperLimit);
+    }
+
+    function calculate_area_under_curve(mean, std_dev, lowerLimit, upperLimit) {
+      var result = jStat.normal.cdf(upperLimit, mean, std_dev) - jStat.normal.cdf(lowerLimit, mean, std_dev);
+      return result;
+    }
+
+    function calculate_x_values(mean, std_dev) {
+      var xValue1 = mean - (3 * std_dev);
+      var xValue2 = mean + (3 * std_dev);
+
+      return [xValue1, xValue2];
+    }
+
+    function updateChart(mean, stdDev, xValue1, xValue2, lowerLimit, upperLimit) {
+      var ctx = document.getElementById("chart").getContext("2d");
+
+      // Eliminar gráfica existente
+      if (chart) {
+        chart.destroy();
+      }
+
+      // Crear la gráfica de la distribución normal
+      var labels = [];
+      var data = [];
+      var backgroundColors = [];
+
+      var stepSize = stdDev / 10;
+
+      for (var i = xValue1; i <= xValue2; i += stepSize) {
+        labels.push(i.toFixed(2));
+        data.push(jStat.normal.pdf(i, mean, stdDev));
+
+        if (i >= lowerLimit && i <= upperLimit) {
+          backgroundColors.push("rgba(0, 123, 255, 1)");
+        } else {
+          backgroundColors.push("rgba(255, 99, 132, 1)");
+        }
+      }
+
+      chart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Probabilidad",
+            data: data,
+            backgroundColor: backgroundColors,
+            borderWidth: .5
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          },
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+
+    function resetForm() {
+      document.getElementById("mean").value = "";
+      document.getElementById("std-dev").value = "";
+      document.getElementById("lower-limit").value = "";
+      document.getElementById("upper-limit").value = "";
+
+      document.getElementById("result").textContent = "";
+      document.getElementById("x-values").textContent = "";
+
+      updateChart(0, 1, -3, 3, 0, 0);
+    }
+  </script>
+</body>
+</html>
